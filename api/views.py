@@ -1,30 +1,19 @@
 from pickle import TRUE
 from django.shortcuts import render
-
 from django.http import HttpResponse
-
-from .models import Post
+from .models import Post, Like
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-
-
 from rest_framework.response import Response
-from .serializers import PostSerializer, NewPostSerializer
+from .serializers import PostSerializer, NewPostSerializer, LikeSerializer
 from django.shortcuts import redirect
 from django.core import serializers
-from api import serializers
+# from api import serializers
+from rest_framework import status
+from rest_framework.views import APIView
 
 
 
-# from django.http import HttpResponse
-# import datetime
-
-# def current_datetime(request):
-#     now = datetime.datetime.now()
-#     html = "<html><body>It is now %s.</body></html>" % now
-#     return HttpResponse(html)
-
-# Create your views here.
 
 def index(request):
 
@@ -50,11 +39,7 @@ def api_new(request, author):
     return redirect("/")
 
 
-# @api_view()
-# def api(request):
-#     post = Post.objects.all()
-#     serializer = PostSerializer(post, many=True)
-#     return Response(serializer.data)
+
 
 @api_view(["POST", "GET"])
 @permission_classes([IsAuthenticated])
@@ -65,12 +50,17 @@ def api(request):
         # new_post = Post()
         # new_post.save()
         # alle Post
-        print(request.user)
+        print("Hallo alt")
         
-        # post = Post.objects.all()
+       
         new_Post = NewPostSerializer(data=request.data)
+        # new_Post.user = request.user
         if new_Post.is_valid(raise_exception=True):
-            new_Post.save()
+            # text=new_Post.data.get("text")
+            print(request.data)
+            # user=request.user
+            # new_Post = Post(user=request.user, text=request.text)
+            new_Post.save(user=request.user)
 
     post = Post.objects.all()
     post = post.order_by("-created_at")
@@ -78,10 +68,40 @@ def api(request):
 
        
     return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def likes(request):
+    
+    print(request.data)
+    new_Like = LikeSerializer(data=request.data)
+    if new_Like.is_valid(raise_exception=True):
+       new_Like.save(user=request.user)
+    print("yeahh")
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+
 # def example_view(request, format =None): 
 #     content = {"status": "request was permitted"}
 #     return Response(content)
         
+
+# class CreatePostView(APIView):
+#     serializer_class = NewPostSerializer
+#     def post(self, request, format=None):
+#         print("Hallo neu")
+#         serializer = self.serializer_class(data=request.data)
+#         if serializer.is_valid():
+#                     text=serializer.data.get("text")
+#                     user=request.user
+#                     post = Post(user=user, text=text)
+#                     post.save()
+                    
+#                     return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
+#         return Response ({"Bad Request": "Invalid data..."}, status=status.HTTP_400_BAD_REQUEST)
    
 
 
