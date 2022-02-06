@@ -42,7 +42,7 @@ def api_new(request, author):
 
 
 @api_view(["POST", "GET"])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def api(request):
     if request.method == 'POST':
         # Nuer Post
@@ -71,16 +71,23 @@ def api(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def likes(request):
-    
-    print(request.data)
-    new_Like = LikeSerializer(data=request.data)
-    if new_Like.is_valid(raise_exception=True):
-       new_Like.save(user=request.user)
-    print("yeahh")
-
-    return Response(status=status.HTTP_201_CREATED)
+    userID = request.user
+    postID = request.data["post"]
+    data = Like.objects.filter(post=postID,user=userID)
+    if data.exists():
+        data.delete()
+        print("dislike")
+    else: 
+        post = Post.objects.get(id=postID)
+        new_Like = Like(post=post,user=userID)
+        new_Like.save()
+        print("like")
+      
+ 
+  
+    return Response()
 
 
 
